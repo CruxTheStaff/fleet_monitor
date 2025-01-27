@@ -1,0 +1,73 @@
+[
+    {
+        "vessel_name": "OLYMPIC CHAMPION",
+        "voyage_id": "OC001",
+        "start_date": "2024-12-28T19:45:55",
+        "end_date": "2024-12-29T19:45:55",
+        "origin": "Piraeus",
+        "destination": "Heraklion",
+        "distance": 180.0,
+        "fuel_consumption": 28.5,
+        "total_cost": 25000.0,
+        "weather_conditions": [
+            "CALM",
+            "MODERATE"
+        ],
+        "port_waiting_times": {
+            "Heraklion": "2.0 hours"
+        }
+    },
+    {
+        "vessel_name": "OLYMPIC CHAMPION",
+        "voyage_id": "OC002",
+        "start_date": "2024-12-30T19:45:55",
+        "end_date": "2024-12-31T19:45:55",
+        "origin": "Heraklion",
+        "destination": "Piraeus",
+        "distance": 195.0,
+        "fuel_consumption": 32.0,
+        "total_cost": 28500.0,
+        "weather_conditions": [
+            "MODERATE",
+            "ROUGH"
+        ],
+        "port_waiting_times": {
+            "Santorini": "1.0 hours",
+            "Piraeus": "3.0 hours"
+        }
+    },
+    {
+        "vessel_name": "BLUE STAR DELOS",
+        "voyage_id": "BSD001",
+        "start_date": "2025-01-02T19:45:55",
+        "end_date": "2025-01-03T19:45:55",
+        "origin": "Piraeus",
+        "destination": "Santorini",
+        "distance": 160.0,
+        "fuel_consumption": 25.0,
+        "total_cost": 22000.0,
+        "weather_conditions": [
+            "CALM"
+        ],
+        "port_waiting_times": {
+            "Santorini": "1.0 hours"
+        }
+    },
+    {
+        "vessel_name": "SUPERFAST XI",
+        "voyage_id": "SF001",
+        "start_date": "2025-01-07T19:45:55",
+        "end_date": "2025-01-08T19:45:55",
+        "origin": "Piraeus",
+        "destination": "Heraklion",
+        "distance": 180.0,
+        "fuel_consumption": 30.0,
+        "total_cost": 27000.0,
+        "weather_conditions": [
+            "ROUGH"
+        ],
+        "port_waiting_times": {
+            "Heraklion": "4.0 hours"
+        }
+    }
+]

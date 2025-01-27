@@ -1,0 +1,38 @@
+[
+    {
+        "name": "OLYMPIC CHAMPION",
+        "position": [
+            37.9838,
+            23.7275
+        ],
+        "destination": "Piraeus",
+        "status": "Loading",
+        "fuel_level": 85,
+        "current_weather": "MODERATE",
+        "last_updated": "2025-01-27T19:46:27"
+    },
+    {
+        "name": "BLUE STAR DELOS",
+        "position": [
+            38.1234,
+            23.8765
+        ],
+        "destination": "Santorini",
+        "status": "Approaching",
+        "fuel_level": 65,
+        "current_weather": "CALM",
+        "last_updated": "2025-01-27T19:46:27"
+    },
+    {
+        "name": "SUPERFAST XI",
+        "position": [
+            37.8765,
+            23.9876
+        ],
+        "destination": "Heraklion",
+        "status": "En Route",
+        "fuel_level": 25,
+        "current_weather": "ROUGH",
+        "last_updated": "2025-01-27T19:46:27"
+    }
+]

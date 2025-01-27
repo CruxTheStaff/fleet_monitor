@@ -1,0 +1,5 @@
+setup.py
+fleet_monitor.egg-info/PKG-INFO
+fleet_monitor.egg-info/SOURCES.txt
+fleet_monitor.egg-info/dependency_links.txt
+fleet_monitor.egg-info/top_level.txt

@@ -1,0 +1,123 @@
+2025-01-26 18:53:02,242 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 18:53:02,252 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 18:53:02,283 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 18:53:02,293 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 20:37:36,829 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 20:37:37,518 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 20:38:04,092 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 20:38:04,096 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 20:38:27,887 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 20:38:27,889 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 20:38:36,293 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 20:38:36,296 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 20:48:31,493 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 20:48:31,499 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 20:48:31,744 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 20:48:31,747 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-26 22:18:17,276 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-26 22:18:17,276 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 00:23:20,839 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 00:23:20,841 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 01:41:04,553 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 01:41:04,601 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 14:06:10,744 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 14:06:10,761 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 14:11:23,362 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 14:11:23,371 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 14:11:23,391 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 14:11:23,405 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 14:14:24,451 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 14:14:24,457 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 14:14:24,489 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 14:14:24,499 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 17:07:33,209 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 17:07:33,239 - src.utils.api_handler - WARNING - No saved vessel data found, using sample data
+2025-01-27 17:07:33,242 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 17:08:14,265 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 17:08:14,269 - src.utils.api_handler - ERROR - Error creating vessel from saved state: 'Moderate'
+2025-01-27 17:08:14,270 - src.utils.api_handler - ERROR - Error creating vessel from saved state: 'Calm'
+2025-01-27 17:08:14,270 - src.utils.api_handler - ERROR - Error creating vessel from saved state: 'Rough'
+2025-01-27 17:08:14,276 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 17:08:20,249 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 17:08:20,301 - src.utils.api_handler - ERROR - Error creating vessel from saved state: 'Moderate'
+2025-01-27 17:08:20,315 - src.utils.api_handler - ERROR - Error creating vessel from saved state: 'Calm'
+2025-01-27 17:08:20,385 - src.utils.api_handler - ERROR - Error creating vessel from saved state: 'Rough'
+2025-01-27 17:08:20,495 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 17:17:26,748 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 17:17:26,814 - src.utils.api_handler - WARNING - Error loading voyage data: fromisoformat: argument must be str
+2025-01-27 17:17:26,815 - src.utils.api_handler - WARNING - Error loading voyage data: fromisoformat: argument must be str
+2025-01-27 17:17:26,816 - src.utils.api_handler - WARNING - Error loading voyage data: fromisoformat: argument must be str
+2025-01-27 17:17:26,817 - src.utils.api_handler - WARNING - Error loading voyage data: fromisoformat: argument must be str
+2025-01-27 17:17:26,817 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 18:04:57,942 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:04:58,013 - src.utils.api_handler - WARNING - Invalid date format for voyage OC001
+2025-01-27 18:04:58,014 - src.utils.api_handler - WARNING - Invalid date format for voyage OC002
+2025-01-27 18:04:58,015 - src.utils.api_handler - WARNING - Invalid date format for voyage BSD001
+2025-01-27 18:04:58,016 - src.utils.api_handler - WARNING - Invalid date format for voyage SF001
+2025-01-27 18:04:58,016 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 18:28:59,222 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:28:59,271 - src.utils.api_handler - WARNING - Invalid date format for voyage OC001
+2025-01-27 18:28:59,272 - src.utils.api_handler - WARNING - Invalid date format for voyage OC002
+2025-01-27 18:28:59,273 - src.utils.api_handler - WARNING - Invalid date format for voyage BSD001
+2025-01-27 18:28:59,274 - src.utils.api_handler - WARNING - Invalid date format for voyage SF001
+2025-01-27 18:28:59,276 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 18:35:51,093 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:35:51,096 - src.utils.api_handler - ERROR - Error creating test vessels: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 18:43:08,429 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:43:08,432 - src.utils.api_handler - ERROR - Error creating test vessels: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 18:43:08,535 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:43:08,537 - src.utils.api_handler - ERROR - Error creating test vessels: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 18:57:56,107 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:57:56,121 - src.utils.api_handler - ERROR - Error creating test vessels: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'self'
+2025-01-27 18:58:35,414 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:58:35,414 - src.utils.api_handler - ERROR - Error creating test vessels: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'self'
+2025-01-27 18:58:43,604 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 18:58:43,604 - src.utils.api_handler - ERROR - Error creating test vessels: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'self'
+2025-01-27 19:14:55,665 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:14:55,681 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:14:55,682 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:14:55,683 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:14:55,683 - src.utils.api_handler - INFO - Using sample data
+2025-01-27 19:14:55,715 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 19:15:40,599 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:15:40,604 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:15:40,604 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:15:40,605 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:15:40,606 - src.utils.api_handler - INFO - Using sample data
+2025-01-27 19:15:40,613 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 19:45:55,825 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:45:55,860 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:45:55,861 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:45:55,861 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:45:55,862 - src.utils.api_handler - INFO - Using sample data
+2025-01-27 19:45:55,877 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 19:46:27,789 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:46:27,795 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:46:27,796 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:46:27,796 - src.utils.api_handler - ERROR - Error creating vessel from saved data: MarineTrafficAPI._create_vessel_from_saved_state() missing 1 required positional argument: 'voyages_data'
+2025-01-27 19:46:27,797 - src.utils.api_handler - INFO - Using sample data
+2025-01-27 19:46:27,806 - src.utils.api_handler - INFO - Successfully created 3 test vessels
+2025-01-27 19:49:48,888 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:49:48,888 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:49:48,943 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:49:48,945 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,962 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,963 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,972 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,974 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,977 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,978 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,979 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,980 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,981 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,981 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,981 - src.utils.api_handler - WARNING - Error loading voyage data: strptime() argument 1 must be str, not datetime.datetime
+2025-01-27 19:49:48,982 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 19:49:48,982 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 19:49:48,982 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 19:54:34,320 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:54:34,320 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:54:34,335 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 19:54:34,335 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
+2025-01-27 19:54:34,381 - src.utils.api_handler - INFO - Creating test vessels
+2025-01-27 19:54:34,417 - src.utils.api_handler - INFO - Loaded 3 vessels from saved state
