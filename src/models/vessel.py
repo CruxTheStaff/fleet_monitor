@@ -1,7 +1,19 @@
+import sys
+import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Tuple, Optional
+from abc import ABC, abstractmethod
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.utils.config import STORMGLASS_API_KEY
+from src.utils.weather_api import WeatherAPI
+from .types import (
+    WeatherCondition, VesselStatus, PortCongestion,
+    WeatherForecast, VoyageData
+)
 
 class VesselStatus(Enum):
     EN_ROUTE = "En Route"
@@ -42,6 +54,7 @@ class VoyageData:
     total_cost: float
     average_speed: float
     route_efficiency: float  # actual/optimal ratio
+    actual_arrival_time: Optional[datetime] = None
 
 @dataclass
 class WeatherForecast:
@@ -71,7 +84,7 @@ class EngineStatus:
             self.readings_history.pop(0)
 
 
-class Vessel:
+class BaseVessel:
     STATUS_COLORS = {
         VesselStatus.EN_ROUTE: "blue",
         VesselStatus.APPROACHING: "green",
@@ -86,6 +99,103 @@ class Vessel:
         WeatherCondition.ROUGH: 1.3,
         WeatherCondition.SEVERE: 1.5
     }
+
+    def __init__(self, name: str, lat: float, lon: float, destination: str,
+                 eta: datetime, cargo_status: str, fuel_level: float):
+        # Basic vessel info
+        self.name = name
+        self.position = (lat, lon)
+        self.destination = destination
+        self.original_eta = eta
+        self.current_eta = eta
+        self.cargo_status = cargo_status
+        self.fuel_level = fuel_level
+        self.status = self._determine_status()
+
+        # Route and Weather
+        self.route: List[Tuple[float, float]] = []
+        self.weather_forecasts: List[WeatherForecast] = []
+        self.current_weather = WeatherCondition.CALM
+
+        # Tracking and History
+        self.track_history: List[Tuple[float, float]] = []
+        self.speed_history: List[float] = []
+        self.heading = 0.0
+
+        # Port status monitoring
+        self.port_status = {
+            'congestion_level': PortCongestion.NONE,
+            'available_berths': 0,
+            'queue_position': None,
+            'estimated_waiting_time': timedelta(minutes=0)
+        }
+
+        # Performance metrics
+        self.speed = 12.0  # Default speed in knots
+        self.max_speed = 20.0
+        self.load_percentage = 70.0
+        self.hull_efficiency = 95.0
+        self.distance_traveled = 0.0
+
+        # New attributes for real-time metrics
+        self.optimal_speed = 12.0  # Default optimal speed
+        self.current_consumption = 0.0  # Current fuel consumption
+        self.baseline_consumption = 0.0  # Baseline fuel consumption
+        self.eta_deviation = 0  # Hours of deviation from original ETA
+
+        # Engine monitoring
+        self.engine = EngineStatus()
+        self.normal_parameters = {
+            'rpm_range': (70, 90),
+            'load_range': (60, 85),
+            'pressure_range': (7.5, 8.5),
+            'temp_range': (75, 85)
+        }
+
+        # Delays and costs
+        self.current_delay = timedelta(minutes=0)
+        self.delay_history: List[Dict] = []
+        self.total_delay_cost = 0.0
+
+        # Historical data
+        self.historical_consumption = []
+        self.historical_speeds = []
+        self._initialize_historical_data()
+
+        # Voyage historical data
+        self.voyage_history: List[VoyageData] = []
+        self.fuel_cost_per_ton = 750.0  # USD per ton
+        self.port_costs = {
+            "Piraeus": {"docking": 1000, "daily_rate": 500},
+            "Santorini": {"docking": 800, "daily_rate": 400},
+            "Heraklion": {"docking": 900, "daily_rate": 450}
+        }
+
+    def calculate_optimal_speed(self) -> float:
+        """Calculate optimal speed based on conditions"""
+        base_optimal = 12.0
+        weather_factor = self.WEATHER_IMPACT[self.current_weather]
+        cargo_factor = 1.0 - (self.load_percentage - 70) / 100 * 0.2
+
+        optimal_speed = base_optimal * weather_factor * cargo_factor
+        return round(optimal_speed, 1)
+
+    def update_consumption_metrics(self):
+        """Update current and baseline consumption"""
+        self.current_consumption = self._calculate_consumption_per_mile()
+        self.baseline_consumption = 30.0 / (self.optimal_speed * 24)  # Basic calculation
+
+    def update_eta_deviation(self):
+        """Calculate deviation from original ETA in hours"""
+        if self.current_eta and self.original_eta:
+            deviation = self.current_eta - self.original_eta
+            self.eta_deviation = round(deviation.total_seconds() / 3600, 1)
+
+    def update_metrics(self):
+        """Update all real-time vessel metrics"""
+        self.optimal_speed = self.calculate_optimal_speed()
+        self.update_consumption_metrics()
+        self.update_eta_deviation()
 
     def add_voyage(self, voyage: VoyageData) -> None:
         """Add a new voyage to vessel's history"""
@@ -107,8 +217,10 @@ class Vessel:
         # Fuel costs
         fuel_cost = voyage.fuel_consumption * self.fuel_cost_per_ton
 
-        # Port costs
+        # Port costs and port delay costs
         port_costs = 0.0
+        port_delay_costs = 0.0
+
         for port in [voyage.origin] + voyage.intermediate_stops + [voyage.destination]:
             if port in self.port_costs:
                 port_data = self.port_costs[port]
@@ -117,19 +229,23 @@ class Vessel:
 
                 port_costs += port_data["docking"]
                 port_costs += port_data["daily_rate"] * days_waiting
+                port_delay_costs += waiting_time.total_seconds() / 3600 * 500  # $500 per hour
 
-        # Delay costs (assuming $500 per hour of delay)
-        delay_costs = sum(
-            waiting.total_seconds() / 3600 * 500
-            for waiting in voyage.port_waiting_times.values()
-        )
+        # Schedule deviation costs (if voyage was delayed overall)
+        schedule_deviation_costs = 0.0
+        if voyage.actual_arrival_time and voyage.actual_arrival_time > voyage.end_date:
+            total_delay = (voyage.actual_arrival_time - voyage.end_date).total_seconds() / 3600
+            schedule_deviation_costs = total_delay * 750  # Higher rate for overall delay
+
+        total_cost = fuel_cost + port_costs + port_delay_costs + schedule_deviation_costs
 
         return {
             "fuel_cost": fuel_cost,
             "port_costs": port_costs,
-            "delay_costs": delay_costs,
-            "total_cost": fuel_cost + port_costs + delay_costs,
-            "cost_per_mile": (fuel_cost + port_costs + delay_costs) / voyage.distance
+            "port_delay_costs": port_delay_costs,
+            "schedule_deviation_costs": schedule_deviation_costs,
+            "total_cost": total_cost,
+            "cost_per_mile": total_cost / voyage.distance
         }
 
     def get_efficiency_metrics_by_voyage(self, voyage: VoyageData) -> Dict[str, float]:
@@ -144,6 +260,7 @@ class Vessel:
             "cargo_load": voyage.cargo_load,
             "total_cost": costs["total_cost"]
         }
+    pass
 
     def __init__(self, name: str, lat: float, lon: float, destination: str,
                  eta: datetime, cargo_status: str, fuel_level: float):
@@ -161,6 +278,11 @@ class Vessel:
         self.route: List[Tuple[float, float]] = []
         self.weather_forecasts: List[WeatherForecast] = []
         self.current_weather = WeatherCondition.CALM
+
+        # Tracking and History
+        self.track_history: List[Tuple[float, float]] = []  # Added track_history
+        self.speed_history: List[float] = []  # Added speed_history
+        self.heading = 0.0  # Added heading for vessel direction
 
         # Port status monitoring
         self.port_status = {
@@ -298,6 +420,8 @@ class Vessel:
     def update_engine_status(self, rpm: float, load: float,
                              pressure: float, temp: float) -> None:
         """Update engine parameters and store in history"""
+        print(
+            f"Updating engine status for {self.name}: rpm={rpm}, load={load}, pressure={pressure}, temp={temp}")  # Προσωρινό logging
         self.engine.rpm = rpm
         self.engine.load = load
         self.engine.fuel_pressure = pressure
@@ -476,4 +600,125 @@ class Vessel:
             "fuel_level": self.fuel_level,
             "speed": self.speed,
             "engine_status": self.check_engine_parameters()
+        }
+
+    def is_on_time(self) -> bool:
+        """
+        Check if the voyage was completed on time.
+        """
+        if self.actual_arrival_time:
+            return self.actual_arrival_time <= self.end_date  # it is on-time if end <= actual
+
+        # if there is not actual arrival time, shipping hasn't ended yet
+        return False
+
+    def calculate_on_time_statistics(self) -> Dict[str, int]:
+        """Calculate the number of voyages completed on time and delayed."""
+        on_time_count = 0
+        delayed_count = 0
+
+        for voyage in self.voyage_history:
+            if voyage.actual_arrival_time and voyage.actual_arrival_time <= voyage.end_date:
+                on_time_count += 1
+            else:
+                delayed_count += 1
+
+        return {
+            "on_time": on_time_count,
+            "delayed": delayed_count
+        }
+
+    def update_weather_conditions(self, weather_data: Dict):
+        """Update vessel's weather conditions"""
+        self.current_weather_data = weather_data
+
+        # Update vessel speed based on weather
+        if weather_data.get('wave_height', 0) > 3:
+            self.speed *= 0.8  # Reduce speed in rough seas
+
+        # Update fuel consumption based on weather
+        wind_speed = weather_data.get('wind_speed', 0)
+        if wind_speed > 20:
+            self.fuel_consumption *= 1.2  # Increase fuel consumption in strong winds
+
+            def update_weather_data(self):
+                """Update vessel weather data from API"""
+                weather_api = WeatherAPI(STORMGLASS_API_KEY)
+                weather_data = weather_api.get_vessel_weather_data(
+                    self.position[0],
+                    self.position[1]
+                )
+
+                self.current_weather = weather_data['current_weather']
+                self.weather_forecasts = weather_data['weather_forecasts']
+
+                # Update vessel parameters based on weather
+                self.update_weather_conditions({
+                    'wave_height': weather_data['wave_height'],
+                    'wind_speed': weather_data['wind_speed']
+                })
+
+class Vessel(BaseVessel, ABC):
+    def __init__(self, name: str, lat: float, lon: float, destination: str,
+                 eta: datetime, cargo_status: str, fuel_level: float):
+        super().__init__(name, lat, lon, destination, eta, cargo_status, fuel_level)
+
+    @abstractmethod
+    def calculate_specific_consumption(self) -> float:
+        """Calculate vessel-type specific fuel consumption"""
+        pass
+
+    @abstractmethod
+    def get_vessel_specific_info(self) -> Dict[str, any]:
+        """Get vessel-type specific information"""
+        pass
+
+class TankerVessel(Vessel):
+    def __init__(self, name: str, lat: float, lon: float, destination: str,
+                 eta: datetime, cargo_status: str, fuel_level: float,
+                 tank_type: str, cargo_capacity: float):
+        super().__init__(name, lat, lon, destination, eta, cargo_status, fuel_level)
+        self.tank_type = tank_type
+        self.cargo_capacity = cargo_capacity
+        self.tank_cleaning_status = "clean"
+        self.cargo_temperature = None
+        self.heating_required = False
+
+    def calculate_specific_consumption(self) -> float:
+        base_consumption = self._calculate_daily_consumption()
+        if self.heating_required:
+            base_consumption *= 1.15
+        return base_consumption
+
+    def get_vessel_specific_info(self) -> Dict[str, any]:
+        return {
+            "tank_type": self.tank_type,
+            "cargo_capacity": self.cargo_capacity,
+            "tank_cleaning_status": self.tank_cleaning_status,
+            "cargo_temperature": self.cargo_temperature,
+            "heating_required": self.heating_required
+        }
+
+class BulkCarrierVessel(Vessel):
+    def __init__(self, name: str, lat: float, lon: float, destination: str,
+                 eta: datetime, cargo_status: str, fuel_level: float,
+                 hold_count: int, hatch_type: str):
+        super().__init__(name, lat, lon, destination, eta, cargo_status, fuel_level)
+        self.hold_count = hold_count
+        self.hatch_type = hatch_type
+        self.ballast_condition = "normal"
+        self.hold_cleaning_status = ["clean"] * hold_count
+
+    def calculate_specific_consumption(self) -> float:
+        base_consumption = self._calculate_daily_consumption()
+        if self.ballast_condition == "heavy":
+            base_consumption *= 1.1
+        return base_consumption
+
+    def get_vessel_specific_info(self) -> Dict[str, any]:
+        return {
+            "hold_count": self.hold_count,
+            "hatch_type": self.hatch_type,
+            "ballast_condition": self.ballast_condition,
+            "hold_cleaning_status": self.hold_cleaning_status
         }
