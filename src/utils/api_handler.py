@@ -11,6 +11,7 @@ from src.models.vessel import (
     Vessel, WeatherCondition, PortCongestion, VoyageData, WeatherForecast  # Πρόσθεσε το WeatherForecast
 )
 from src.utils.data_manager import DataManager
+from src.models.vessel import TankerVessel, BulkCarrierVessel
 
 # Configure logging
 logging.basicConfig(
@@ -165,6 +166,121 @@ class MarineTrafficAPI:
             logger.error(f"Unexpected error: {str(e)}")
             raise
 
+    def get_sample_data(self) -> List[Vessel]:
+        """Get enhanced test data with more realistic variations"""
+        vessels = []
+        logger.info("Creating test vessels from sample data")
+
+        # Απευθείας χρήση του SAMPLE_DATA
+        for data in self.SAMPLE_DATA:
+            try:
+                vessel = self._create_vessel(data)
+                if vessel:
+                    # Αρχικοποίηση tracking data
+                    vessel.track_history = [vessel.position]
+                    vessel.speed_history = [vessel.speed]
+                    vessel.heading = 0.0
+
+                    # Δημιουργία αρχικού ιστορικού κίνησης
+                    for _ in range(5):  # Δημιουργία 5 αρχικών σημείων
+                        self.update_vessel_position(vessel)
+
+                    # Ενημέρωση port status
+                    port_status = self.update_port_congestion(vessel.destination)
+                    if port_status:
+                        vessel.update_port_status(
+                            congestion_level=port_status['congestion_level'],
+                            available_berths=port_status['total_berths'] - port_status['current_occupancy'],
+                            queue_position=port_status['queue']
+                        )
+
+                    vessels.append(vessel)
+                    self._simulate_realistic_conditions(vessel)
+            except Exception as e:
+                logger.error(f"Error creating vessel from sample data: {str(e)}")
+                continue
+
+        logger.info(f"Successfully created {len(vessels)} test vessels")
+        return vessels
+
+    def update_vessel_position(self, vessel: Vessel) -> None:
+        """Update vessel position and track history"""
+        try:
+            # Simulate vessel movement
+            current_lat, current_lon = vessel.position
+
+            # Calculate new position with realistic movement
+            movement_factor = vessel.speed / vessel.max_speed
+            lat_change = random.uniform(-0.01, 0.01) * movement_factor
+            lon_change = random.uniform(-0.01, 0.01) * movement_factor
+
+            new_lat = current_lat + lat_change
+            new_lon = current_lon + lon_change
+            new_position = (new_lat, new_lon)
+
+            # Update vessel position
+            vessel.position = new_position
+
+            # Update track history (keep last 100 positions)
+            vessel.track_history.append(new_position)
+            if len(vessel.track_history) > 100:
+                vessel.track_history.pop(0)
+
+            # Update speed with realistic variations
+            speed_variation = random.uniform(-1, 1)
+            new_speed = min(max(vessel.speed + speed_variation, 0), vessel.max_speed)
+            vessel.speed = new_speed
+
+            # Update speed history (keep last 100 readings)
+            vessel.speed_history.append(new_speed)
+            if len(vessel.speed_history) > 100:
+                vessel.speed_history.pop(0)
+
+            # Calculate heading based on last two positions
+            if len(vessel.track_history) >= 2:
+                vessel.heading = self._calculate_heading(
+                    vessel.track_history[-2],
+                    vessel.track_history[-1]
+                )
+
+            logger.debug(f"Updated position for vessel {vessel.name}: {new_position}")
+
+        except Exception as e:
+            logger.error(f"Error updating vessel position: {str(e)}")
+
+    def _calculate_heading(self, pos1: tuple, pos2: tuple) -> float:
+        """Calculate heading angle between two positions"""
+        import math
+
+        lat1, lon1 = pos1
+        lat2, lon2 = pos2
+
+        # Convert to radians
+        lat1, lon1 = math.radians(lat1), math.radians(lon1)
+        lat2, lon2 = math.radians(lat2), math.radians(lon2)
+
+        d_lon = lon2 - lon1
+
+        y = math.sin(d_lon) * math.cos(lat2)
+        x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(d_lon)
+
+        heading = math.atan2(y, x)
+
+        # Convert to degrees and normalize
+        heading_degrees = math.degrees(heading)
+        normalized_heading = (heading_degrees + 360) % 360
+
+        return normalized_heading
+
+    @staticmethod
+    def _save_to_cache(cache_file: Path, data: List[Dict[str, Any]]) -> None:
+        """Save data to cache file"""
+        try:
+            with cache_file.open('w') as f:
+                json.dump(data, f)
+        except Exception as e:
+            logger.error(f"Failed to save cache: {str(e)}")
+
     def _is_cache_valid(self, cache_file: Path) -> bool:
         """Check if cache is still valid"""
         return (datetime.now().timestamp() - cache_file.stat().st_mtime) < self.cache_duration
@@ -180,89 +296,49 @@ class MarineTrafficAPI:
             logger.error(f"Failed to load cache: {str(e)}")
             return None
 
-    @staticmethod
-    def _save_to_cache(cache_file: Path, data: List[Dict[str, Any]]) -> None:
-        """Save data to cache file"""
-        try:
-            with cache_file.open('w') as f:
-                json.dump(data, f)
-        except Exception as e:
-            logger.error(f"Failed to save cache: {str(e)}")
-
-    def get_sample_data(self) -> List[Vessel]:
-        """Get enhanced test data with more realistic variations"""
-        vessels = []
-        logger.info("Creating test vessels")
-
-        try:
-            # Try to load saved state first
-            saved_data = self.load_saved_state()
-            if saved_data is not None:
-                vessels_data, voyages_data = saved_data
-                for vessel_data in vessels_data:
-                    try:
-                        vessel = self._create_vessel_from_saved_state(vessel_data, voyages_data)
-                        if vessel:
-                            vessels.append(vessel)
-                    except Exception as e:
-                        logger.error(f"Error creating vessel from saved data: {str(e)}")
-                        continue
-
-                if vessels:
-                    logger.info(f"Loaded {len(vessels)} vessels from saved state")
-                    return vessels
-
-            # If no saved state or loading failed, use sample data
-            logger.info("Using sample data")
-            for data in self.SAMPLE_DATA:
-                try:
-                    vessel = self._create_vessel(data)
-                    if vessel:
-                        port_status = self.update_port_congestion(vessel.destination)
-                        if port_status:
-                            vessel.update_port_status(
-                                congestion_level=port_status['congestion_level'],
-                                available_berths=port_status['total_berths'] - port_status['current_occupancy'],
-                                queue_position=port_status['queue']
-                            )
-
-                        vessels.append(vessel)
-                        self._simulate_realistic_conditions(vessel)
-                except Exception as e:
-                    logger.error(f"Error creating vessel from sample data: {str(e)}")
-                    continue
-
-            # Save current state
-            if vessels:
-                try:
-                    self.save_current_state(vessels)
-                except Exception as e:
-                    logger.error(f"Error saving current state: {str(e)}")
-
-            logger.info(f"Successfully created {len(vessels)} test vessels")
-            return vessels
-
-        except Exception as e:
-            logger.error(f"Error in get_sample_data: {str(e)}")
-            return []
-
     def _create_vessel(self, data: dict) -> Optional[Vessel]:
         """Create a single vessel with error handling"""
         try:
-            logger.debug(f"Creating vessel: {data['name']}")
+            print(f"\nCreating vessel: {data['name']}")  # Debug print
+            print(f"Vessel type: {data.get('vessel_type', 'unknown')}")  # Debug print
 
-            vessel = Vessel(
-                name=data["name"],
-                lat=data["lat"],
-                lon=data["lon"],
-                destination=data["destination"],
-                eta=datetime.strptime(data["eta"], "%Y-%m-%d"),
-                cargo_status=data["cargo_status"],
-                fuel_level=data["fuel_level"]
-            )
+            # Create appropriate vessel type based on vessel_type
+            if data["vessel_type"] == "tanker":
+                vessel = TankerVessel(
+                    name=data["name"],
+                    lat=data["lat"],
+                    lon=data["lon"],
+                    destination=data["destination"],
+                    eta=datetime.strptime(data["eta"], "%Y-%m-%d"),
+                    cargo_status=data["cargo_status"],
+                    fuel_level=data["fuel_level"],
+                    tank_type=data["tank_type"],
+                    cargo_capacity=data["cargo_capacity"]
+                )
+            elif data["vessel_type"] == "bulk_carrier":
+                vessel = BulkCarrierVessel(
+                    name=data["name"],
+                    lat=data["lat"],
+                    lon=data["lon"],
+                    destination=data["destination"],
+                    eta=datetime.strptime(data["eta"], "%Y-%m-%d"),
+                    cargo_status=data["cargo_status"],
+                    fuel_level=data["fuel_level"],
+                    hold_count=data["hold_count"],
+                    hatch_type=data["hatch_type"]
+                )
+            else:
+                raise ValueError(f"Unknown vessel type: {data.get('vessel_type')}")
 
+            print(f"Vessel created, setting properties...")  # Debug print
             # Set additional properties
             self._set_vessel_properties(vessel, data)
+
+            print(f"Properties set, checking engine values:")  # Debug print
+            print(f"RPM: {vessel.engine.rpm}")
+            print(f"Load: {vessel.engine.load}")
+            print(f"Pressure: {vessel.engine.fuel_pressure}")
+            print(f"Temperature: {vessel.engine.temperature}")
 
             # Simulate historical data
             self._simulate_historical_readings(vessel)
@@ -270,10 +346,10 @@ class MarineTrafficAPI:
             # Add voyage history
             self._add_voyage_history(vessel)
 
-            logger.debug(f"Successfully created vessel: {vessel.name}")
             return vessel
 
         except Exception as e:
+            print(f"Error in create_vessel: {str(e)}")  # Debug print
             logger.error(f"Failed to create vessel {data.get('name', 'unknown')}: {str(e)}")
             return None
 
@@ -303,12 +379,14 @@ class MarineTrafficAPI:
     def _set_vessel_properties(vessel: Vessel, data: dict) -> None:
         """Set vessel properties with validation"""
         try:
+            print(f"Setting properties for vessel {vessel.name}")  # Προσωρινό logging
             vessel.speed = min(max(0, data["speed"]), vessel.max_speed)
             vessel.current_weather = WeatherCondition[data["weather"]]
             vessel.load_percentage = min(max(0, data["load_percentage"]), 100)
             vessel.hull_efficiency = min(max(0, data["hull_efficiency"]), 100)
             vessel.distance_traveled = max(0, data["distance_traveled"])
 
+            print(f"Engine data for {vessel.name}: {data['engine']}")  # Προσωρινό logging
             vessel.update_engine_status(
                 rpm=data["engine"]["rpm"],
                 load=data["engine"]["load"],
@@ -316,6 +394,7 @@ class MarineTrafficAPI:
                 temp=data["engine"]["temperature"]
             )
         except Exception as e:
+            print(f"Error setting vessel properties: {str(e)}")  # Προσωρινό logging
             logger.error(f"Error setting vessel properties: {str(e)}")
             raise
 
@@ -437,6 +516,17 @@ class MarineTrafficAPI:
             logger.error(f"Error loading saved state: {str(e)}")
             return None
 
+    def initialize_vessel_tracking(self, vessel: Vessel) -> None:
+        """Initialize tracking data for a new vessel"""
+        # Initialize with current position
+        vessel.track_history = [vessel.position]
+        vessel.speed_history = [vessel.speed]
+        vessel.heading = 0.0  # Initial heading
+
+        # Create some initial history
+        for _ in range(5):  # Add 5 initial points
+            self.update_vessel_position(vessel)
+
     def _create_vessel_from_saved_state(
             self,
             vessel_data: Dict[str, Any],
@@ -516,6 +606,12 @@ class MarineTrafficAPI:
     SAMPLE_DATA = [
         {
             "name": "OLYMPIC CHAMPION",
+            "vessel_type": "tanker",  # Προσθήκη τύπου πλοίου
+            "tank_type": "crude_oil",  # Ειδικά πεδία για tanker
+            "cargo_capacity": 120000.0,
+            "tank_cleaning_status": "clean",
+            "cargo_temperature": 25.0,
+            "heating_required": True,
             "lat": 37.9838,
             "lon": 23.7275,
             "destination": "Piraeus",
@@ -536,6 +632,11 @@ class MarineTrafficAPI:
         },
         {
             "name": "BLUE STAR DELOS",
+            "vessel_type": "bulk_carrier",  # Προσθήκη τύπου πλοίου
+            "hold_count": 7,  # Ειδικά πεδία για bulk carrier
+            "hatch_type": "folding",
+            "ballast_condition": "normal",
+            "hold_cleaning_status": ["clean"] * 7,
             "lat": 38.1234,
             "lon": 23.8765,
             "destination": "Santorini",
@@ -556,6 +657,11 @@ class MarineTrafficAPI:
         },
         {
             "name": "SUPERFAST XI",
+            "vessel_type": "bulk_carrier",  # Προσθήκη τύπου πλοίου
+            "hold_count": 5,  # Ειδικά πεδία για bulk carrier
+            "hatch_type": "standard",
+            "ballast_condition": "heavy",
+            "hold_cleaning_status": ["clean"] * 5,
             "lat": 37.8765,
             "lon": 23.9876,
             "destination": "Heraklion",
@@ -577,7 +683,7 @@ class MarineTrafficAPI:
     ]
 
     SAMPLE_VOYAGES = {
-        "OLYMPIC CHAMPION": [
+        "OLYMPIC CHAMPION": [  # Tanker voyages
             {
                 "voyage_id": "OC001",
                 "start_date": datetime.now() - timedelta(days=30),
@@ -588,6 +694,14 @@ class MarineTrafficAPI:
                 "distance": 180.0,
                 "fuel_consumption": 28.5,
                 "cargo_load": 85.0,
+                # Tanker-specific data
+                "cargo_type": "crude_oil",
+                "cargo_temperature_log": [38.5, 38.2, 38.7, 38.4],  # Temperature readings
+                "heating_hours": 12,
+                "tank_washing_required": False,
+                "cargo_pressure": 2.8,  # bar
+                "inert_gas_system_status": "operational",
+                # Common data
                 "weather_conditions": [WeatherCondition.CALM, WeatherCondition.MODERATE],
                 "port_waiting_times": {
                     "Heraklion": timedelta(hours=2)
@@ -595,28 +709,9 @@ class MarineTrafficAPI:
                 "total_cost": 25000.0,
                 "average_speed": 15.5,
                 "route_efficiency": 0.92
-            },
-            {
-                "voyage_id": "OC002",
-                "start_date": datetime.now() - timedelta(days=28),
-                "end_date": datetime.now() - timedelta(days=27),
-                "origin": "Heraklion",
-                "destination": "Piraeus",
-                "intermediate_stops": ["Santorini"],
-                "distance": 195.0,
-                "fuel_consumption": 32.0,
-                "cargo_load": 90.0,
-                "weather_conditions": [WeatherCondition.MODERATE, WeatherCondition.ROUGH],
-                "port_waiting_times": {
-                    "Santorini": timedelta(hours=1),
-                    "Piraeus": timedelta(hours=3)
-                },
-                "total_cost": 28500.0,
-                "average_speed": 14.8,
-                "route_efficiency": 0.88
             }
         ],
-        "BLUE STAR DELOS": [
+        "BLUE STAR DELOS": [  # Bulk carrier voyages
             {
                 "voyage_id": "BSD001",
                 "start_date": datetime.now() - timedelta(days=25),
@@ -627,6 +722,13 @@ class MarineTrafficAPI:
                 "distance": 160.0,
                 "fuel_consumption": 25.0,
                 "cargo_load": 75.0,
+                # Bulk carrier-specific data
+                "cargo_type": "grain",
+                "hold_utilization": [80, 75, 85, 70, 78, 82, 76],  # Percentage per hold
+                "ballast_conditions": ["normal", "normal", "heavy"],  # Changes during voyage
+                "hold_cleaning_status": ["clean"] * 7,
+                "hatch_inspections": ["passed"] * 7,
+                # Common data
                 "weather_conditions": [WeatherCondition.CALM],
                 "port_waiting_times": {
                     "Santorini": timedelta(hours=1)
@@ -636,7 +738,7 @@ class MarineTrafficAPI:
                 "route_efficiency": 0.95
             }
         ],
-        "SUPERFAST XI": [
+        "SUPERFAST XI": [  # Bulk carrier voyages
             {
                 "voyage_id": "SF001",
                 "start_date": datetime.now() - timedelta(days=20),
@@ -647,6 +749,14 @@ class MarineTrafficAPI:
                 "distance": 180.0,
                 "fuel_consumption": 30.0,
                 "cargo_load": 95.0,
+                # Bulk carrier-specific data
+                "cargo_type": "coal",
+                "hold_utilization": [92, 95, 90, 93, 94],  # Percentage per hold
+                "ballast_conditions": ["heavy", "heavy", "normal"],  # Changes during voyage
+                "hold_cleaning_status": ["clean"] * 5,
+                "hatch_inspections": ["passed"] * 5,
+                "dust_suppression_active": True,
+                # Common data
                 "weather_conditions": [WeatherCondition.ROUGH],
                 "port_waiting_times": {
                     "Heraklion": timedelta(hours=4)
@@ -657,3 +767,5 @@ class MarineTrafficAPI:
             }
         ]
     }
+
+
